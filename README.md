@@ -1,1 +1,1 @@
-# The-Inventory
+# The Inventory
