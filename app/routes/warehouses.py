@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.connection import SessionLocal
 from app.models.warehouse import Warehouse
-from app.schemas.warehouse import WarehouseCreate
+from app.schemas.warehouse import WarehouseCreate, WarehouseUpdate, WarehouseResponse
 
 router = APIRouter(prefix = "/api/warehouses", tags = ["Warehouses"])
 
@@ -43,15 +43,63 @@ def get_warehouses(db: Session = Depends(get_db)):
     
     return result
 
-@router.get("/{warehouse_id}")
-def get_warehouse(warehouse_id: int, db: Session = Depends(get_db)):
-    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
+@router.get("/{warehouseId}")
+def get_warehouse(warehouseId: int, db: Session = Depends(get_db)):
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouseId).first()
 
     if not warehouse:
-        return {"message": "Warehouse not found"}
+        raise HTTPException(status_code = 404, detail = "Warehouse not found")
     
     return {
-        "id": f"W{warehouse_id}",
+        "id": f"W{warehouseId}",
         "name": warehouse.name,
         "location": warehouse.location
     }
+
+@router.patch("/{warehouseId}")
+def update_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depends(get_db)):
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouseId).first()
+
+    if not warehouse:
+        raise HTTPException(status_code = 404, detail = "Warehouse not found")
+
+    if data.name is not None: warehouse.name = data.name
+    if data.location is not None: warehouse.location = data.location
+
+    db.commit()
+    db.refresh(warehouse)
+
+    return {
+        "message": "Warehouse updated successfully"
+    }
+
+@router.put("/{warehouseId}")
+def put_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depends(get_db)):
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouseId).first()
+
+    if not warehouse:
+        raise HTTPException(status_code = 404, detail = "Warehouse not found")
+    
+    warehouse.name = data.name
+    warehouse.location = data.location
+    
+    db.commit()
+    db.refresh(warehouse)
+    
+    return {
+        "message": "Warehouse updated successfully"
+    }
+
+@router.delete("/{warehouseId}")
+def delete_warehouse(warehouseId: int, db: Session = Depends(get_db)):
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouseId).first()
+
+    if not warehouse:
+        raise HTTPException(status_code = 404, detail = "Warehouse not found")
+    
+    db.delete(warehouse)
+    db.commit()
+
+    return {
+        "message": "Warehouse deleted successfully"
+    }   
