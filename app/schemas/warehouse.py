@@ -1,16 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 class WarehouseBase(BaseModel):
-    name: str
-    location: str
+    name: str = Field(..., min_length=3, description="Numele depozitului")
+    location: str = Field(..., description="Locația depozitului")
 
 class WarehouseCreate(WarehouseBase):
     pass
 
 class WarehouseUpdate(BaseModel):
-    name: Optional[str] = None
-    location: Optional[str] = None
+    name: Optional[str] = Field(None, min_length=3, description="Numele depozitului")
+    location: Optional[str] = Field(None, description="Locația depozitului")
 
 class WarehouseResponse(WarehouseBase):
     id: int
