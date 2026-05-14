@@ -38,7 +38,6 @@ const ERDTable = ({ title, columns, icon, colorClass }) => (
 );
 
 export default function LandingPage({ currentView = 'home', onNavigate }) {
-  // Funcție simplă pentru a evidenția butonul activ în nav
   const getNavClass = (path) => {
     const base = "transition-colors cursor-pointer font-semibold text-sm ";
     return currentView === path 
@@ -47,11 +46,11 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 overflow-hidden font-sans">
-      {/* --- FUNDAL MESH GRADIENT FIN --- */}
+    <div className="relative min-h-screen flex flex-col bg-slate-50 overflow-hidden font-sans">
+      {/* --- FUNDAL MESH GRADIENT --- */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-[-15%] left-[-10%] w-[60%] h-[60%] rounded-full bg-linear-to-br from-indigo-200/50 to-transparent blur-[140px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-linear-to-tl from-blue-200/40 to-transparent blur-[120px]" />
+        <div className="absolute top-[-15%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-200/50 blur-[140px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-blue-200/40 blur-[120px]" />
       </div>
 
       {/* --- NAVBAR --- */}
@@ -71,12 +70,29 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-8 py-20">
+      {/* flex-1 asigură că main ocupă spațiul, dar pb-12 reduce distanța până la footer */}
+      <main className="flex-1 max-w-7xl mx-auto px-8 pt-20 pb-12">
+        
         {/* --- HERO SECTION --- */}
-        <div className="text-center mb-32">
-          <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-tight mb-8">
+        <div className="text-center mb-24 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-semibold mb-6"
+          >
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+            Sistem Integrat de Gestiune v2.0
+          </motion.div>
+
+          <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-tight mb-6">
             Gestiune <span className="text-indigo-600">Profesională</span>
           </h1>
+
+          <p className="max-w-2xl mx-auto text-lg text-slate-600 mb-10 leading-relaxed">
+            Optimizează fluxul de lucru al depozitului tău cu o arhitectură modernă, 
+            sincronizare în timp real și interfață intuitivă.
+          </p>
+
           <button 
             onClick={() => onNavigate('warehouses')}
             className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition-all shadow-2xl flex items-center gap-3 mx-auto cursor-pointer"
@@ -85,8 +101,23 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
           </button>
         </div>
 
-        {/* --- ARHITECTURA SISTEMULUI (Cele 3 Tabele Mapate Exact) --- */}
-        <section className="bg-slate-900 rounded-[4rem] p-12 md:p-20 relative overflow-hidden">
+        {/* --- STATISTICI RAPIDE --- */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto mb-32 px-4">
+          {[
+            { value: "99.9%", label: "Acuratețe" },
+            { value: "⚡ < 10ms", label: "Latență" },
+            { value: "UUID v4", label: "Securitate" },
+            { value: "Real-time", label: "Sync" },
+          ].map((stat, idx) => (
+            <div key={idx} className="text-center border-r last:border-0 border-slate-200">
+              <div className="text-3xl font-black text-slate-900">{stat.value}</div>
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </section>
+
+        {/* --- ARHITECTURA SISTEMULUI --- */}
+        <section className="bg-slate-900 rounded-[3rem] p-12 md:p-20 relative overflow-hidden mb-24">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent)]" />
           
           <div className="relative z-10">
@@ -95,10 +126,7 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
               <div className="h-1 w-20 bg-indigo-500 mx-auto rounded-full" />
             </div>
 
-            {/* Container ERD */}
             <div className="flex flex-col md:flex-row justify-center gap-8 items-start md:items-stretch">
-              
-              {/* TABEL: SUPPLIERS */}
               <ERDTable 
                 title="suppliers" 
                 icon="Truck" 
@@ -110,7 +138,6 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
                 ]} 
               />
 
-              {/* TABEL: PRODUCTS (Motorul central, cu UUID) */}
               <div className="relative flex-1 max-w-75 w-full mx-auto md:mx-0">
                 <div className="absolute -inset-2 bg-indigo-500/10 blur-lg rounded-2xl pointer-events-none" />
                 <ERDTable 
@@ -122,15 +149,12 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
                     { name: "warehouse_id", type: "Integer", keyType: "FK" },
                     { name: "name", type: "String" },
                     { name: "sku", type: "String" },
-                    { name: "description", type: "String" },
                     { name: "price", type: "Float" },
-                    { name: "category", type: "String" },
                     { name: "stockQuantity", type: "Integer" }
                   ]} 
                 />
               </div>
 
-              {/* TABEL: WAREHOUSES */}
               <ERDTable 
                 title="warehouses" 
                 icon="Warehouse" 
@@ -141,15 +165,50 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
                   { name: "location", type: "String" }
                 ]} 
               />
-
             </div>
-            
-            <p className="text-center mt-16 text-slate-500 text-xs font-mono uppercase tracking-[0.2em]">
-              "Sincronizare atomică între baza de date și interfața utilizator."
-            </p>
+          </div>
+        </section>
+
+        {/* --- BENEFICII (Bento Grid) --- */}
+        <section className="mb-12"> {/* Redus de la mb-32 la mb-12 pentru a fi aproape de footer */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black text-slate-900 mb-2">De ce The Inventory?</h2>
+            <p className="text-slate-500">Funcționalități gândite pentru eficiență maximă.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: "Control Multi-Depozit", desc: "Transferă și alocă stocuri instant între locații fizice diferite.", icon: "MapPin" },
+              { title: "Relații Eficiente", desc: "Corelează automat produsele cu furnizorii pentru re-aprovizionare.", icon: "Users" },
+              { title: "Performanță Nativă", desc: "Interfață optimizată pentru procesarea a mii de SKU-uri fără lag.", icon: "Zap" }
+            ].map((feat, i) => (
+              <motion.div key={i} whileHover={{ y: -5 }} className="p-8 bg-white border border-slate-200/60 rounded-3xl shadow-sm">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6">
+                  <Icon name={feat.icon} className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{feat.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">{feat.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
       </main>
+
+      {/* --- FOOTER --- */}
+      <footer className="bg-white border-t border-slate-200 py-12">
+        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 opacity-50 grayscale">
+            <Icon name="Package" className="w-5 h-5 text-slate-900" />
+            <span className="font-bold text-slate-900 italic">The Inventory</span>
+          </div>
+          <div className="flex gap-8 text-sm font-medium text-slate-500">
+            <span className="hover:text-indigo-600 cursor-pointer transition-colors">Documentație</span>
+            <span className="hover:text-indigo-600 cursor-pointer transition-colors">API</span>
+            <span className="hover:text-indigo-600 cursor-pointer transition-colors">Contact</span>
+          </div>
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} - Construit pentru Excelență</p>
+        </div>
+      </footer>
     </div>
   );
 }
