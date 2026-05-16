@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import Navbar from './Navbar'; // 👈 Am adăugat importul pentru noul fișier Navbar.jsx
 
 // Helper robust pentru iconițe Lucide
 const Icon = ({ name, ...props }) => {
@@ -38,12 +39,7 @@ const ERDTable = ({ title, columns, icon, colorClass }) => (
 );
 
 export default function LandingPage({ currentView = 'home', onNavigate }) {
-  const getNavClass = (path) => {
-    const base = "transition-colors cursor-pointer font-semibold text-sm ";
-    return currentView === path 
-      ? base + "text-indigo-600 font-bold" 
-      : base + "text-slate-600 hover:text-indigo-600";
-  };
+  // 💡 Notă: Funcția getNavClass a fost ștearsă deoarece logica ei este acum tratată în interiorul Navbar.jsx
 
   return (
     <div className="relative min-h-screen flex flex-col bg-slate-50 overflow-hidden font-sans">
@@ -54,21 +50,8 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
       </div>
 
       {/* --- NAVBAR --- */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-slate-200/60">
-        <div className="max-w-7xl mx-auto px-8 h-18 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onNavigate('home')}>
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:rotate-6 transition-transform">
-              <Icon name="Package" className="text-white w-6 h-6" />
-            </div>
-            <span className="font-extrabold text-xl tracking-tight text-slate-900 italic">The Inventory</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => onNavigate('warehouses')} className={getNavClass('warehouses')}>Depozite</button>
-            <button onClick={() => onNavigate('suppliers')} className={getNavClass('suppliers')}>Furnizori</button>
-            <button onClick={() => onNavigate('products')} className={getNavClass('products')}>Produse</button>
-          </div>
-        </div>
-      </nav>
+      {/* 👈 Am înlocuit nav-ul hardcodat cu noua componentă modulară */}
+      <Navbar currentView={currentView} onNavigate={onNavigate} />
 
       {/* flex-1 asigură că main ocupă spațiul, dar pb-12 reduce distanța până la footer */}
       <main className="flex-1 max-w-7xl mx-auto px-8 pt-20 pb-12">
@@ -170,7 +153,7 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
         </section>
 
         {/* --- BENEFICII (Bento Grid) --- */}
-        <section className="mb-12"> {/* Redus de la mb-32 la mb-12 pentru a fi aproape de footer */}
+        <section className="mb-12">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-slate-900 mb-2">De ce The Inventory?</h2>
             <p className="text-slate-500">Funcționalități gândite pentru eficiență maximă.</p>
@@ -197,16 +180,48 @@ export default function LandingPage({ currentView = 'home', onNavigate }) {
       {/* --- FOOTER --- */}
       <footer className="bg-white border-t border-slate-200 py-12">
         <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          {/* Partea stângă: Logo */}
           <div className="flex items-center gap-2 opacity-50 grayscale">
             <Icon name="Package" className="w-5 h-5 text-slate-900" />
             <span className="font-bold text-slate-900 italic">The Inventory</span>
           </div>
+          
+          {/* Centru: Link-uri */}
           <div className="flex gap-8 text-sm font-medium text-slate-500">
             <span className="hover:text-indigo-600 cursor-pointer transition-colors">Documentație</span>
             <span className="hover:text-indigo-600 cursor-pointer transition-colors">API</span>
             <span className="hover:text-indigo-600 cursor-pointer transition-colors">Contact</span>
           </div>
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} - Construit pentru Excelență</p>
+          
+          {/* Partea dreaptă: Copyright + GitHub */}
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-slate-400">© {new Date().getFullYear()} - Construit pentru Excelență</p>
+            
+            {/* Butonul/Link-ul spre GitHub */}
+            <a 
+              href="https://github.com/BoghianPavel/The-Inventory" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+              title="Vezi codul sursă pe GitHub"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-5 h-5"
+              >
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.24c3-.34 6-1.53 6-6.76a5.2 5.2 0 0 0-1.39-3.6 4.9 4.9 0 0 0-.12-3.5s-1.13-.36-3.7 1.36a12.8 12.8 0 0 0-6.8 0C6.13 2 5 2.36 5 2.36a4.9 4.9 0 0 0-.12 3.5A5.2 5.2 0 0 0 3.5 9.5c0 5.23 3 6.42 6 6.76-.94.8-1.36 2.02-1.4 3.24v4"></path>
+                <path d="M4 19c-2-1.5-2-2-4-2"></path>
+              </svg>
+            </a>
+          </div>
+          
         </div>
       </footer>
     </div>
