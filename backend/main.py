@@ -9,8 +9,8 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://the-inventory-sigma.vercel.app/",
-    "https://the-inventory-sigma.vercel.app/api/",
+    "https://the-inventory-sigma.vercel.app",
+    "https://www.the-inventory-sigma.vercel.app",
 ]
 
 app.add_middleware(
