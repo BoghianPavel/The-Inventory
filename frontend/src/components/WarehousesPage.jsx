@@ -10,7 +10,7 @@ const Icon = ({ name, ...props }) => {
   return <LucideIcon {...props} />;
 };
  
-const API = 'http://localhost:8000/api/warehouses';
+const API = 'https://the-inventory-backend.onrender.com/api/warehouses';
  
 // ─── Modal backdrop ───────────────────────────────────────────────────────────
 function ModalBackdrop({ onClose, children }) {

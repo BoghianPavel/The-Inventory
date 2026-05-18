@@ -10,7 +10,7 @@ const Icon = ({ name, ...props }) => {
   return <LucideIcon {...props} />;
 };
  
-const BASE = 'http://localhost:8000/api';
+const BASE = 'https://the-inventory-backend.onrender.com/api';
 const parseWId = (id) => {
   if (!id) return null;
   return parseInt(String(id).replace('W', ''));
