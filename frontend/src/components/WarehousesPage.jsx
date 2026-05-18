@@ -51,14 +51,13 @@ function WarehouseModal({ warehouse, onClose, onSave }) {
  
   const validate = () => {
     const e = {};
-    if (!form.name || form.name.length < 3) e.name = 'Minim 3 caractere';
-    if (!form.location) e.location = 'Locația este obligatorie';
+    if (!form.name?.trim() || form.name.trim().length < 3) e.name = 'Minim 3 caractere';
+    if (!form.location?.trim()) e.location = 'Locația este obligatorie';
     return e;
   };
  
   const handleSubmit = async () => {
-    // 🚨 3. Comparația obiectelor înainte de validare/request
-    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+    if (isEdit && method == 'patch' &&isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
       toast('Nu ai modificat nicio informație.', {
         icon: '⚠️',
         style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
@@ -72,11 +71,11 @@ function WarehouseModal({ warehouse, onClose, onSave }) {
     setLoading(true);
     try {
       if (isEdit) {
-        const id = parseInt(warehouse.id.replace('W', ''));
+        const id = warehouse.id;
         method === 'put' ? await axios.put(`${API}/${id}`, form) : await axios.patch(`${API}/${id}`, form);
         toast.success('Depozit actualizat!');
       } else {
-        await axios.post(`${API}/`, form);
+        await axios.post(`${API}`, form);
         toast.success('Depozit creat!');
       }
       onSave(); onClose();
@@ -160,7 +159,7 @@ function DeleteConfirm({ warehouse, onClose, onDeleted }) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${API}/${parseInt(warehouse.id.replace('W', ''))}`);
+      await axios.delete(`${API}/${warehouse.id}`);
       toast.success(`"${warehouse.name}" a fost șters.`);
       onDeleted(); onClose();
     } catch (err) {
@@ -201,7 +200,7 @@ export default function WarehousesPage({ onNavigate, onBack }) {
  
   const fetchWarehouses = async () => {
     setLoading(true);
-    try { const res = await axios.get(`${API}/`); setWarehouses(res.data); }
+    try { const res = await axios.get(API); setWarehouses(res.data); }
     catch { toast.error('Nu s-au putut încărca depozitele'); }
     finally { setLoading(false); }
   };
@@ -215,14 +214,10 @@ useEffect(() => {
 }, []);
  
   const filtered = [...warehouses]
-  .sort((a, b) => {
-    const idA = parseInt(a.id.replace('W', ''));
-    const idB = parseInt(b.id.replace('W', ''));
-    return idA - idB;
-  })
+  .sort((a, b) => (a.id || 0) - (b.id || 0))
   .filter(w =>
-    w.name.toLowerCase().includes(search.toLowerCase()) ||
-    w.location.toLowerCase().includes(search.toLowerCase())
+    (w.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (w.location || '').toLowerCase().includes(search.toLowerCase())
   );
  
   return (

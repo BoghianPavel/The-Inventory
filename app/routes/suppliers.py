@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.connection import SessionLocal
 from app.models.supplier import Supplier
-from app.schemas.supplier import SupplierCreate, SupplierUpdate, SupplierResponse
+from app.schemas.supplier import SupplierCreate, SupplierUpdate
 
 router = APIRouter(prefix = "/api/suppliers", tags = ["Suppliers"])
 
@@ -13,7 +13,7 @@ def get_db():
     finally:
         db.close()
     
-@router.post("/")
+@router.post("")
 def create_supplier(data: SupplierCreate, db: Session = Depends(get_db)):
     supplier = Supplier(
         name = data.name,
@@ -26,17 +26,17 @@ def create_supplier(data: SupplierCreate, db: Session = Depends(get_db)):
 
     return {
         "message": "Supplier created successfully",
-        "id": f"S{supplier.id}"
+        "id": supplier.id
     }
 
-@router.get("/")
+@router.get("")
 def get_suppliers(db: Session = Depends(get_db)):
     supplier = db.query(Supplier).all()
     result = []
 
     for s in supplier:
         result.append({
-            "id": f"S{s.id}",
+            "id": s.id,
             "name": s.name,
             "contact_email": s.contact_email
         })
@@ -50,7 +50,7 @@ def get_supplier(supplierId: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Supplier not found")
     
     return {
-        "id": f"S{supplier.id}",
+        "id": supplier.id,
         "name": supplier.name,
         "contact_email": supplier.contact_email
     }
@@ -61,9 +61,6 @@ def patch_supplier(supplierId: int, data: SupplierUpdate, db: Session = Depends(
 
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
-    
-    if data.name == supplier.name and data.contact_email == supplier.contact_email:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
 
     if data.name is not None:
         supplier.name = data.name
@@ -83,9 +80,6 @@ def put_supplier(supplierId: int, data: SupplierUpdate, db: Session = Depends(ge
 
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
-    
-    if data.name == supplier.name and data.contact_email == supplier.contact_email:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
 
     supplier.name = data.name
     supplier.contact_email = data.contact_email

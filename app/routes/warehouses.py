@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.database.connection import SessionLocal
 from app.models.warehouse import Warehouse
-from app.schemas.warehouse import WarehouseCreate, WarehouseUpdate, WarehouseResponse
+from app.schemas.warehouse import WarehouseCreate, WarehouseUpdate
 
 router = APIRouter(prefix = "/api/warehouses", tags = ["Warehouses"])
 
@@ -13,7 +14,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/")
+@router.post("")
 def create_warehouse(data: WarehouseCreate, db: Session = Depends(get_db)):
     warehouse = Warehouse(
         name = data.name,
@@ -26,17 +27,17 @@ def create_warehouse(data: WarehouseCreate, db: Session = Depends(get_db)):
 
     return {
         "message": "Warehouse created successfully",
-        "id": f"W{warehouse.id}"
+        "id": warehouse.id
     }
 
-@router.get("/")
+@router.get("")
 def get_warehouses(db: Session = Depends(get_db)):
     warehouses = db.query(Warehouse).all()
     
     result = []
     for w in warehouses:
         result.append({
-            "id": f"W{w.id}",
+            "id": w.id,
             "name": w.name,
             "location": w.location
         })
@@ -51,7 +52,7 @@ def get_warehouse(warehouseId: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
     
     return {
-        "id": f"W{warehouseId}",
+        "id": warehouseId,
         "name": warehouse.name,
         "location": warehouse.location
     }
@@ -62,9 +63,6 @@ def update_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depe
 
     if not warehouse:
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
-
-    if data.name == warehouse.name and data.location == warehouse.location:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
 
     if data.name is not None: warehouse.name = data.name
     if data.location is not None: warehouse.location = data.location
@@ -83,11 +81,8 @@ def put_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depends
     if not warehouse:
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
     
-    if data.name == warehouse.name and data.location == warehouse.location:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
-    
-    warehouse.name = data.name
-    warehouse.location = data.location
+    warehouse.name = data.name if data.name is not None else warehouse.name
+    warehouse.location = data.location if data.location is not None else warehouse.location
     
     db.commit()
     db.refresh(warehouse)
@@ -102,10 +97,12 @@ def delete_warehouse(warehouseId: int, db: Session = Depends(get_db)):
 
     if not warehouse:
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
-    
-    db.delete(warehouse)
-    db.commit()
-
+    try:
+        db.delete(warehouse)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Warehouse still has products! Transfer before deleting")
     return {
         "message": "Warehouse deleted successfully"
     }   

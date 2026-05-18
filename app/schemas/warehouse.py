@@ -11,6 +11,3 @@ class WarehouseCreate(WarehouseBase):
 class WarehouseUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=3, description="Numele depozitului")
     location: Optional[str] = Field(None, description="Locația depozitului")
-
-class WarehouseResponse(WarehouseBase):
-    id: int

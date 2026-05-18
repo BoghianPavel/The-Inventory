@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database.connection import SessionLocal
 from app.models.product import Product
 from app.models.warehouse import Warehouse
-from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
+from app.schemas.product import ProductCreate, ProductUpdate
 
 router = APIRouter(prefix="/api/warehouses/{warehouseId}/products", tags=["Products"])
 
@@ -14,7 +14,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/")
+@router.post("")
 def create_product(warehouseId: int, data: ProductCreate, db: Session = Depends(get_db)):
     warehouse = db.query(Warehouse).filter(warehouseId == Warehouse.id).first()
 
@@ -40,7 +40,7 @@ def create_product(warehouseId: int, data: ProductCreate, db: Session = Depends(
         "message": "Product created successfully"
     }
 
-@router.get("/")
+@router.get("")
 def get_products(warehouseId: int, db: Session = Depends(get_db)):
     products = db.query(Product).filter(warehouseId == Product.warehouse_id).all()
     result = []
@@ -75,9 +75,6 @@ def patch_product(warehouseId: int, productId: str, data: ProductUpdate, db: Ses
     if data.stockQuantity is not None:
         raise HTTPException(status_code=400, detail="Bad request")
 
-    if data.name == product.name and data.sku == product.sku and data.description == product.description and data.price == product.price and data.category == product.category:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
-
     if data.name is not None: product.name = data.name
     if data.sku is not None: product.sku = data.sku
     if data.description is not None: product.description = data.description
@@ -100,9 +97,6 @@ def put_product(warehouseId: int, productId: str, data: ProductUpdate, db: Sessi
 
     if data.stockQuantity is not None:
         raise HTTPException(status_code=400, detail="Bad request")
-    
-    if data.name == product.name and data.sku == product.sku and data.description == product.description and data.price == product.price and data.category == product.category:
-        raise HTTPException(status_code=400, detail="Warning! No change detected")
     
     product.name = data.name
     product.sku = data.sku

@@ -19,6 +19,3 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = Field(None, gt=0, description="Prețul produsului")
     category: Optional[str] = Field(None, description="Categoria produsului")
     stockQuantity: Optional[int] = Field(None, ge=0, description="Cantitatea de produse în stoc")
-
-class ProductResponse(ProductBase):
-    id: str

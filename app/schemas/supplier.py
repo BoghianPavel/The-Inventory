@@ -11,6 +11,3 @@ class SupplierCreate(SupplierBase):
 class SupplierUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=3, description="Numele furnizorului")
     contact_email: Optional[EmailStr] = Field(None, description="Emailul de contact al furnizorului")
-
-class SupplierResponse(SupplierBase):
-    id: int

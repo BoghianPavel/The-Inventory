@@ -15,7 +15,7 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/")
+@router.get("")
 def get_inventory(warehouseId: int, db: Session = Depends(get_db)):
     warehouse = db.query(Warehouse).filter(Warehouse.id == warehouseId).first()
     if not warehouse:
@@ -61,12 +61,9 @@ def increase_stock(warehouseId: int, productId: str, data: StockIncrease, db: Se
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    try:
-        supplier_id = int(str(data.supplierId).replace("S", "").strip())
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid supplierId format")
-    
+    supplier_id = data.supplierId
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
 
@@ -79,6 +76,7 @@ def increase_stock(warehouseId: int, productId: str, data: StockIncrease, db: Se
 
     return {
         "message": "Stock increased successfully",
+        "reason": data.reason,
         "newStockQuantity": product.stockQuantity
     }
 
@@ -93,9 +91,6 @@ def decrease_stock(warehouseId: int, productId: str, data: StockDecrease, db: Se
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    if product.stockQuantity < data.quantity:
-        raise HTTPException(status_code=400, detail="Insufficient stock")
-    
     if data.quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be greater than zero")
 
@@ -108,6 +103,7 @@ def decrease_stock(warehouseId: int, productId: str, data: StockDecrease, db: Se
 
     return {
         "message": "Stock decreased successfully",
+        "reason": data.reason,
         "newStockQuantity": product.stockQuantity
     }
 
@@ -128,13 +124,14 @@ def transfer_stock(warehouseId: int, productId: str, data: StockTransfer, db: Se
     if product.stockQuantity < data.quantity:
         raise HTTPException(status_code=400, detail=f"Insufficient stock. Available {product.stockQuantity}, requested {data.quantity}")
 
-    try:
-        target_w_id = int(data.targetWarehouseId.replace("W", ""))
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid targetWarehouseId format")
+    target_w_id = data.targetWarehouseId
 
     if target_w_id == warehouseId:
         raise HTTPException(status_code=400, detail="Source and target warehouses must be different")
+
+    target_warehouse = db.query(Warehouse).filter(Warehouse.id == target_w_id).first()
+    if not target_warehouse:
+        raise HTTPException(status_code=404, detail="Target warehouse not found")
 
     target_product = db.query(Product).filter(Product.warehouse_id == target_w_id, Product.sku == product.sku).first()
 
@@ -159,6 +156,7 @@ def transfer_stock(warehouseId: int, productId: str, data: StockTransfer, db: Se
 
     return {
         "message": "Stock transferred successfully",
+        "reason": data.reason,
         "newStockQuantitySource": product.stockQuantity,
         "newStockQuantityTarget": target_product.stockQuantity
     }

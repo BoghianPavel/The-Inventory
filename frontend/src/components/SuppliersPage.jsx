@@ -51,14 +51,14 @@ function SupplierModal({ supplier, onClose, onSave }) {
  
   const validate = () => {
     const e = {};
-    if (!form.name || form.name.length < 3) e.name = 'Minim 3 caractere';
-    if (!form.contact_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contact_email)) e.contact_email = 'Email invalid';
+    if (!form.name?.trim() || form.name.trim().length < 3) e.name = 'Minim 3 caractere';
+    if (!form.contact_email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contact_email)) e.contact_email = 'Email invalid';
     return e;
   };
  
   const handleSubmit = async () => {
     // 🚨 3. Oprim salvarea dacă datele sunt identice
-    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+    if (isEdit && method == "patch" && isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
       toast('Nu ai modificat nicio informație.', {
         icon: '⚠️',
         style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
@@ -72,7 +72,7 @@ function SupplierModal({ supplier, onClose, onSave }) {
     setLoading(true);
     try {
       if (isEdit) {
-        const id = parseInt(supplier.id.replace('S', ''));
+        const id = supplier.id;
         method === 'put' ? await axios.put(`${API}/${id}`, form) : await axios.patch(`${API}/${id}`, form);
         toast.success('Furnizor actualizat cu succes!');
       } else {
@@ -170,7 +170,7 @@ function DeleteConfirm({ supplier, onClose, onDeleted }) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${API}/${parseInt(supplier.id.replace('S', ''))}`);
+      await axios.delete(`${API}/${supplier.id}`);
       toast.success(`"${supplier.name}" a fost șters.`);
       onDeleted(); onClose();
     } catch (err) {
@@ -209,7 +209,7 @@ export default function SuppliersPage({ onNavigate, onBack }) {
  
   const fetchSuppliers = async () => {
     setLoading(true);
-    try { const res = await axios.get(`${API}/`); setSuppliers(res.data); }
+    try { const res = await axios.get(API); setSuppliers(res.data); }
     catch { toast.error('Nu s-au putut încărca furnizorii'); }
     finally { setLoading(false); }
   };
@@ -222,10 +222,12 @@ useEffect(() => {
   loadSuppliers();
 }, []);
  
-  const filtered = suppliers.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.contact_email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = [...suppliers]
+    .sort((a, b) => (a.id || 0) - (b.id || 0))
+    .filter(s =>
+      (s.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (s.contact_email || '').toLowerCase().includes(search.toLowerCase())
+    );
  
   return (
     <div className="min-h-screen bg-slate-50">

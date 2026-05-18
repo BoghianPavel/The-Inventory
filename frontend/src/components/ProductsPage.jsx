@@ -113,18 +113,18 @@ function ProductModal({ product, warehouseId, onClose, onSave }) {
  
   const validate = () => {
     const e = {};
-    if (!form.name || form.name.length < 3) e.name = 'Minim 3 caractere';
-    if (!form.sku  || form.sku.length  < 3) e.sku  = 'Minim 3 caractere';
-    if (!form.description) e.description = 'Obligatoriu';
+    if (!form.name?.trim() || form.name.trim().length < 3) e.name = 'Minim 3 caractere';
+    if (!form.sku?.trim()  || form.sku.trim().length  < 3) e.sku  = 'Minim 3 caractere';
+    if (!form.description?.trim()) e.description = 'Obligatoriu';
     if (!form.price || Number(form.price) <= 0) e.price = 'Preț > 0';
-    if (!form.category) e.category = 'Obligatorie';
+    if (!form.category?.trim()) e.category = 'Obligatorie';
     if (!isEdit && (form.stockQuantity === '' || Number(form.stockQuantity) < 0)) e.stockQuantity = 'Stoc ≥ 0';
     return e;
   };
  
   const handleSubmit = async () => {
     // 🚨 3. Validarea UX care oprește salvarea inutilă
-    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+    if (isEdit && method == 'patch' && isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
       toast('Nu ai modificat nicio informație.', {
         icon: '⚠️',
         style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
@@ -325,8 +325,8 @@ function StockModal({ product, warehouseId, warehouses, suppliers, operation, on
   const [loading, setLoading] = useState(false);
  
   const CFG = {
-    increase: { icon: 'TrendingUp',     color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', grad: 'from-emerald-600/15', btn: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20', label: 'Adaugă Stoc',    title: 'Creștere Stoc' },
-    decrease: { icon: 'TrendingDown',   color: 'text-orange-400',  bg: 'bg-orange-500/10 border-orange-500/20',   grad: 'from-orange-600/15',  btn: 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20',   label: 'Scade Stoc',     title: 'Scădere Stoc'  },
+    increase: { icon: 'TrendingUp',    color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', grad: 'from-emerald-600/15', btn: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20', label: 'Adaugă Stoc',    title: 'Creștere Stoc' },
+    decrease: { icon: 'TrendingDown',   color: 'text-orange-400',  bg: 'bg-orange-500/10 border-orange-500/20',   grad: 'from-orange-600/15',  btn: 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20',  label: 'Scade Stoc',     title: 'Scădere Stoc'  },
     transfer: { icon: 'ArrowLeftRight', color: 'text-sky-400',     bg: 'bg-sky-500/10 border-sky-500/20',         grad: 'from-sky-600/15',     btn: 'bg-sky-600 hover:bg-sky-500 shadow-sky-500/20',           label: 'Transferă Stoc', title: 'Transfer Stoc' },
   };
   const cfg = CFG[operation];
@@ -351,17 +351,25 @@ function StockModal({ product, warehouseId, warehouses, suppliers, operation, on
     setLoading(true);
     try {
       const url = `${BASE}/warehouses/${parseWId(warehouseId)}/inventory/${product.id}/${operation}`;
+      
+      // Am aplicat parseInt pe ID-uri pentru a fi compatibile cu validarea de int din Pydantic
       const payload =
-        operation === 'increase' ? { quantity: qtyNum, supplierId } :
+        operation === 'increase' ? { quantity: qtyNum, supplierId: parseInt(supplierId) } :
         operation === 'decrease' ? { quantity: qtyNum, reason } :
-        { quantity: qtyNum, targetWarehouseId: targetWId, reason };
+        { quantity: qtyNum, targetWarehouseId: parseInt(targetWId), reason };
  
       const res = await axios.post(url, payload);
       const d = res.data;
  
-      if (operation === 'increase') toast.success(`+${qtyNum} buc. de la ${d.supplierName || supplierId}. Stoc nou: ${d.newStockQuantity}`);
-      else if (operation === 'decrease') toast.success(`-${qtyNum} buc. Stoc rămas: ${d.newStockQuantity}. Motiv: ${d.reason}`);
-      else toast.success(`Transfer → ${d.targetWarehouse}. Sursă: ${d.newStockQuantitySource} | Dest.: ${d.newStockQuantityTarget}`);
+      if (operation === 'increase') {
+        toast.success(`+${qtyNum} buc. de la ${d.supplierName || 'Furnizor'}. Stoc nou: ${d.newStockQuantity}`);
+      } else if (operation === 'decrease') {
+        toast.success(`-${qtyNum} buc. Stoc rămas: ${d.newStockQuantity}. Motiv: ${d.reason}`);
+      } else {
+        // Căutăm local numele depozitului țintă pentru a evita erorile de undefined în mesajul succesiv
+        const targetWarehouseName = warehouses.find(w => w.id === parseInt(targetWId))?.name || 'Depozit';
+        toast.success(`Transfer ${qtyNum} buc. → ${targetWarehouseName}. Motiv: ${d.reason}`);
+      }
  
       onSave(); onClose();
     } catch (err) {
