@@ -37,7 +37,12 @@ function ModalBackdrop({ onClose, children }) {
 // ─── Modal creare / editare ───────────────────────────────────────────────────
 function WarehouseModal({ warehouse, onClose, onSave }) {
   const isEdit = !!warehouse?.id;
-  const [form, setForm] = useState({ name: warehouse?.name || '', location: warehouse?.location || '' });
+  
+  const initialFormState = { name: warehouse?.name || '', location: warehouse?.location || '' };
+
+  const [form, setForm] = useState(initialFormState);
+  const [initialForm] = useState(initialFormState);
+
   const [method, setMethod] = useState('patch');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -52,8 +57,18 @@ function WarehouseModal({ warehouse, onClose, onSave }) {
   };
  
   const handleSubmit = async () => {
+    // 🚨 3. Comparația obiectelor înainte de validare/request
+    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+      toast('Nu ai modificat nicio informație.', {
+        icon: '⚠️',
+        style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
+      });
+      return;
+    }
+
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    
     setLoading(true);
     try {
       if (isEdit) {
@@ -199,7 +214,13 @@ useEffect(() => {
   loadWarehouses();
 }, []);
  
-  const filtered = warehouses.filter(w =>
+  const filtered = [...warehouses]
+  .sort((a, b) => {
+    const idA = parseInt(a.id.replace('W', ''));
+    const idB = parseInt(b.id.replace('W', ''));
+    return idA - idB;
+  })
+  .filter(w =>
     w.name.toLowerCase().includes(search.toLowerCase()) ||
     w.location.toLowerCase().includes(search.toLowerCase())
   );

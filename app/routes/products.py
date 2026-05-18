@@ -74,7 +74,10 @@ def patch_product(warehouseId: int, productId: str, data: ProductUpdate, db: Ses
 
     if data.stockQuantity is not None:
         raise HTTPException(status_code=400, detail="Bad request")
-    
+
+    if data.name == product.name and data.sku == product.sku and data.description == product.description and data.price == product.price and data.category == product.category:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
+
     if data.name is not None: product.name = data.name
     if data.sku is not None: product.sku = data.sku
     if data.description is not None: product.description = data.description
@@ -97,6 +100,9 @@ def put_product(warehouseId: int, productId: str, data: ProductUpdate, db: Sessi
 
     if data.stockQuantity is not None:
         raise HTTPException(status_code=400, detail="Bad request")
+    
+    if data.name == product.name and data.sku == product.sku and data.description == product.description and data.price == product.price and data.category == product.category:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
     
     product.name = data.name
     product.sku = data.sku

@@ -61,6 +61,10 @@ def patch_supplier(supplierId: int, data: SupplierUpdate, db: Session = Depends(
 
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    if data.name == supplier.name and data.contact_email == supplier.contact_email:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
+
     if data.name is not None:
         supplier.name = data.name
     if data.contact_email is not None:
@@ -80,6 +84,9 @@ def put_supplier(supplierId: int, data: SupplierUpdate, db: Session = Depends(ge
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
     
+    if data.name == supplier.name and data.contact_email == supplier.contact_email:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
+
     supplier.name = data.name
     supplier.contact_email = data.contact_email
 

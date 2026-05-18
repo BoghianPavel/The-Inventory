@@ -37,7 +37,12 @@ function ModalBackdrop({ onClose, children }) {
 // ─── Modal creare / editare ───────────────────────────────────────────────────
 function SupplierModal({ supplier, onClose, onSave }) {
   const isEdit = !!supplier?.id;
-  const [form, setForm] = useState({ name: supplier?.name || '', contact_email: supplier?.contact_email || '' });
+
+  const initialFormState = { name: supplier?.name || '', contact_email: supplier?.contact_email || '' };
+
+  const [form, setForm] = useState(initialFormState);
+  const [initialForm] = useState(initialFormState);
+
   const [method, setMethod] = useState('patch');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -52,8 +57,18 @@ function SupplierModal({ supplier, onClose, onSave }) {
   };
  
   const handleSubmit = async () => {
+    // 🚨 3. Oprim salvarea dacă datele sunt identice
+    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+      toast('Nu ai modificat nicio informație.', {
+        icon: '⚠️',
+        style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
+      });
+      return;
+    }
+
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    
     setLoading(true);
     try {
       if (isEdit) {

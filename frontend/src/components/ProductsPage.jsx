@@ -96,11 +96,15 @@ function FormField({
 // ─── Modal Produs ─────────────────────────────────────────────────────────────
 function ProductModal({ product, warehouseId, onClose, onSave }) {
   const isEdit = !!product?.id;
-  const [form, setForm] = useState({
+  const initialFormState = {
     name: product?.name || '', sku: product?.sku || '',
     description: product?.description || '', price: product?.price ?? '',
     category: product?.category || '', stockQuantity: product?.stockQuantity ?? 0,
-  });
+  };
+
+  const [form, setForm] = useState(initialFormState);
+  const [initialForm] = useState(initialFormState);
+
   const [method, setMethod] = useState('patch');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -119,8 +123,18 @@ function ProductModal({ product, warehouseId, onClose, onSave }) {
   };
  
   const handleSubmit = async () => {
+    // 🚨 3. Validarea UX care oprește salvarea inutilă
+    if (isEdit && JSON.stringify(form) === JSON.stringify(initialForm)) {
+      toast('Nu ai modificat nicio informație.', {
+        icon: '⚠️',
+        style: { borderRadius: '12px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }
+      });
+      return;
+    }
+
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    
     setLoading(true);
     try {
       const wId = parseWId(warehouseId);
@@ -566,7 +580,7 @@ export default function ProductsPage({ onNavigate, onBack, params }) {
     };
 
     loadData();
-  }, []); // 👈 CORECTAT: Schimbat din [activeWId] în [] pentru a rula doar o dată la mount
+  }, []);
  
   // Funcția de fetch izolată cu useCallback pentru a fi pasată în modale (onSave, onDeleted)
   const fetchProducts = useCallback(async () => {

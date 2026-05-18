@@ -63,6 +63,9 @@ def update_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depe
     if not warehouse:
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
 
+    if data.name == warehouse.name and data.location == warehouse.location:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
+
     if data.name is not None: warehouse.name = data.name
     if data.location is not None: warehouse.location = data.location
 
@@ -79,6 +82,9 @@ def put_warehouse(warehouseId: int, data: WarehouseUpdate, db: Session = Depends
 
     if not warehouse:
         raise HTTPException(status_code = 404, detail = "Warehouse not found")
+    
+    if data.name == warehouse.name and data.location == warehouse.location:
+        raise HTTPException(status_code=400, detail="Warning! No change detected")
     
     warehouse.name = data.name
     warehouse.location = data.location
